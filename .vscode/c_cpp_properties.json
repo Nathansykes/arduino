@@ -21,7 +21,20 @@
                 "c:\\users\\nathan\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\nathan\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\nathan\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include",
-                "D:\\Nathan\\Documents\\Arduino\\libraries\\Zumo32U4\\src"
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries",
+                "c:/Users/Nathan/OneDrive - Sheffield Hallam University/3rd Year/Part 1/Robotics/adruino/libraries/Zumo32U4/src",
+                "c:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\Zumo32U4\\src",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\FastGPIO",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\PololuBuzzer\\src",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\PololuHD44780",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\PololuMenu\\src",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\PololuOLED\\src",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\Pushbutton",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\USBPause",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\Zumo32U4\\src",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\ZumoAutomation",
+                "C:\\Users\\Nathan\\OneDrive - Sheffield Hallam University\\3rd Year\\Part 1\\Robotics\\adruino\\libraries\\ZumoShield",
+                "C:/Users/Nathan/OneDrive - Sheffield Hallam University/3rd Year/Part 1/Robotics/adruino/libraries/PololuOLED/src"
             ],
             "forcedInclude": [
                 "C:\\Users\\Nathan\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\cores\\arduino\\Arduino.h"
