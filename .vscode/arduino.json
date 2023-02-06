@@ -1,4 +1,4 @@
 {
-    "board": "arduino:avr:uno",
-    "sketch": "zumo\\zumo.ino"
+    "board": "pololu-a-star:avr:a-star32U4",
+    "sketch": "Zumo\\zumo\\zumo.ino"
 }
