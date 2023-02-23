@@ -8,42 +8,44 @@ void setup() {
 }
 
 void loop() {
-  char input[9];
+  String input = "";
   delay(9);
   if (Serial.available() > 0)
   {
     //expecting a string like "-120,300"
     int availableBytes = Serial.available();
-    Serial.println(availableBytes);
-    for (int i = 0; i < availableBytes; i++)
-    {
-      input[i] = Serial.read();
-    }
+    input = Serial.readStringUntil('\n');
 
     Serial.print("input: ");
     Serial.println(input);
-    
-    String str = String(input);
 
     // Find index of comma
-    int commaIndex = str.indexOf(',');
+    int commaIndex = input.indexOf(',');
+    Serial.print("commaIndex: ");
+    Serial.println(commaIndex);
 
     // Extract first number
-    String num1Str = str.substring(0, commaIndex);
+    String num1Str = input.substring(0, commaIndex);
+
+    Serial.print("num1Str: ");
+    Serial.println(num1Str);
+
     int num1 = num1Str.toInt();
 
     // Extract second number
-    String num2Str = str.substring(commaIndex + 1);
-    int num2 = num2Str.toInt();
+    String num2Str = input.substring(commaIndex + 1);
 
+    Serial.print("num2Str: ");
+    Serial.println(num2Str);
+    
+    int num2 = num2Str.toInt();
 
     Serial.print("num1: ");
     Serial.println(num1);
     Serial.print("num2: ");
     Serial.println(num2); 
 
-    motors.setSpeeds(num1, num2);  
-
+    motors.setSpeeds(num1, num2);
   }
 
 }
