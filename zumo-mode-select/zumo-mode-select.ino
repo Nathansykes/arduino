@@ -18,7 +18,7 @@ public:
 
 char SelectedMode = Mode::ModeSelect;
 
-int blackThreshhold = 250;
+int blackLineValue = 250;
 
 int count = 0;
 int forwardCount = 0;
@@ -43,19 +43,19 @@ void loop()
     String input = GetInput();
     char oldMode = SelectedMode;
     ModeSelect(input);
-    if (oldMode == SelectedMode)//if the mode has changed we get user input again
+    if (oldMode == SelectedMode)//if the mode has changed we skip and get user input again
     {
-        RunMode(input);
+        RunMode(input);//some modes don't require input so we handle empty input in the method
     }
 }
 
 String GetInput()
 {
     String input = "";
-    delay(10);
+    delay(10);//delay to allow all the data to get to the zumo
     if (Serial.available() > 0)
     {
-        input = Serial.readStringUntil('\n');
+        input = Serial.readStringUntil('\n');//read the next line
 
         Serial.print("Received Input: ");
         Serial.println(input);
@@ -65,19 +65,19 @@ String GetInput()
 
 void ModeSelect(String input)
 {
-    if (input.length() == 0)
+    if (input.length() == 0)//no input so we don't change the mode
         return;
     char c = input.charAt(0);
-    if (c == Mode::ModeSelect)
+    if (c == Mode::ModeSelect)// ModeSelect acts like a main menu **
     {
         SelectedMode = Mode::ModeSelect;
-        motors.setSpeeds(0, 0);
+        motors.setSpeeds(0, 0);//stop the robot when this mode is active
         Serial.println("Selected Mode: ModeSelect");
     }
 
-    if (SelectedMode == Mode::ModeSelect)
+    if (SelectedMode == Mode::ModeSelect)//** mode can't be changed unless mode select is selected
     {
-        switch (c)
+        switch (c)// change the mode based on the char entered
         {
         case Mode::SetMotors:
             SelectedMode = Mode::SetMotors;
@@ -104,24 +104,24 @@ void RunMode(String input)
         case Mode::SetMotors:
             if (input.length() > 0)
             {
-                SetMotorsFromSerial(input);
+                SetMotorsFromSerial(input);//only needs to be hit when new input received
             }
             break;
         case Mode::WASD:
             if (input.length() > 0)
             {
-                SetWASD(input);
+                SetWASD(input);//only needs to be hit when new input received
             }
             break;
         case Mode::Automated:
-            // AutomatedMode();
+            // AutomatedMode(); // this needs to be hit continuously in a loop
             motors.setSpeeds(100, -100);
             break;
         }
     }
 }
 
-// expecting a string like "-120,300"
+
 void SetMotorsFromSerial(String input)
 {
     // Find index of comma
@@ -156,9 +156,9 @@ void SetMotorsFromSerial(String input)
 // input should be a string like "w90" or "d-120"
 void SetWASD(String input)
 {
-    char c = input.charAt(0);
-    int speed = input.substring(1).toInt();
-    float boostMultiplier = 1.3;
+    char c = input.charAt(0);//get the first character for the direction
+    int speed = input.substring(1).toInt();//get the remainder of the string and convert to int
+    const float boostMultiplier = 1.3;
 
     Serial.print("c: ");
     Serial.println(c);
@@ -206,34 +206,34 @@ void AutomatedMode()
 
 void FollowLines()
 {
-    // If black line is in front stop
-    if (leftSensor > blackThreshhold && leftSensor > (blackThreshhold - 100) && rightSensor > blackThreshhold)
+    // if black line detected in front then turn
+    if (leftSensor > blackLineValue && leftSensor > (blackLineValue - 100) && rightSensor > blackLineValue)
     {
         ReverseAndTurnRight(100, delaySmallTurn);
     }
-    // If robot is in a corner turn clockwise
-    if (leftSensor > blackThreshhold && leftSensor < blackThreshhold && rightSensor > blackThreshhold)
+    // if lines detected on both sides, were in a corner so do a large turn
+    if (leftSensor > blackLineValue && leftSensor < blackLineValue && rightSensor > blackLineValue)
     {
         ReverseAndTurnRight(50, delayXLargeTurn);
     }
-    // Goes forward if no black lines are detected on either side
-    if (leftSensor < blackThreshhold && rightSensor < blackThreshhold)
+    // if no black line is detected, go forward
+    if (leftSensor < blackLineValue && rightSensor < blackLineValue)
     {
         motors.setSpeeds(100, 100);
-        forwardCount++;
-        if (forwardCount > 1000)
+        forwardCount++;//keep track of how far we have gone forward
+        if (forwardCount > 1000)// if we have gone forward for a while, turn to check if there is a room
         {
             ReverseAndTurnLeft(0, delayLargeTurn);
             forwardCount = 0;
         }
     }
-    // If left black line is no longer there and the right black line is, turn left
-    if (leftSensor < blackThreshhold && rightSensor > blackThreshhold)
+    // if only black line on the right is detected, turn left
+    if (leftSensor < blackLineValue && rightSensor > blackLineValue)
     {
         ReverseAndTurnLeft(50, delaySmallTurn);
     }
-    // if right black line is no longer there but left is, turn right
-    if (leftSensor > blackThreshhold && rightSensor < blackThreshhold)
+    // if only black line on the left is detected, turn right
+    if (leftSensor > blackLineValue && rightSensor < blackLineValue)
     {
         ReverseAndTurnRight(50, delaySmallTurn);
     }
