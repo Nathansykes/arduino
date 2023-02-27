@@ -49,7 +49,7 @@ void loop()
     // Serial.println(rightSensor);
     // Serial.println("======================");
 }
-void reverseAndTurnLeft(int reverseAmount, int turnAmount, int speed = 100)
+void ReverseAndTurnLeft(int reverseAmount, int turnAmount, int speed = 100)
 {
     motors.setSpeeds(-speed,-speed);
     delay(reverseAmount);
@@ -57,7 +57,7 @@ void reverseAndTurnLeft(int reverseAmount, int turnAmount, int speed = 100)
     delay(turnAmount);
 }
 
-void reverseAndTurnRight(int reverseAmount, int turnAmount, int speed = 100)
+void ReverseAndTurnRight(int reverseAmount, int turnAmount, int speed = 100)
 {
     motors.setSpeeds(-speed,-speed);
     delay(reverseAmount);
@@ -70,12 +70,12 @@ void followLines()
     // If black line is in front stop
     if (leftSensor > blackThreshhold && leftSensor > (blackThreshhold - 100) && rightSensor > blackThreshhold)
     {
-        reverseAndTurnRight(100, delaySmallTurn);
+        ReverseAndTurnRight(100, delaySmallTurn);
     }
     // If robot is in a corner turn clockwise
     if (leftSensor > blackThreshhold && leftSensor < blackThreshhold && rightSensor > blackThreshhold)
     {
-        reverseAndTurnRight(50, delayXLargeTurn);
+        ReverseAndTurnRight(50, delayXLargeTurn);
     }
     // Goes forward if no black lines are detected on either side
     if (leftSensor < blackThreshhold && rightSensor < blackThreshhold)
@@ -84,19 +84,19 @@ void followLines()
         forwardCount++;
         if(forwardCount > 1000)
         {
-            reverseAndTurnLeft(0, delayLargeTurn);
+            ReverseAndTurnLeft(0, delayLargeTurn);
             forwardCount = 0;
         }
     }
     // If left black line is no longer there and the right black line is, turn left
     if (leftSensor < blackThreshhold && rightSensor > blackThreshhold)
     {
-        reverseAndTurnLeft(50, delaySmallTurn);
+        ReverseAndTurnLeft(50, delaySmallTurn);
     }
     // if right black line is no longer there but left is, turn right
     if (leftSensor > blackThreshhold && rightSensor < blackThreshhold)
     {
-        reverseAndTurnRight(50, delaySmallTurn);
+        ReverseAndTurnRight(50, delaySmallTurn);
     }
 }
 

@@ -15,36 +15,6 @@ void loop() {
   if(Serial.available() > 0) {
     char c = Serial.read();
 
-    switch(c)
-    {
-      case 'w':
-        motors.setSpeeds(speed, speed);
-        break;
-      case 's':
-        motors.setSpeeds(-speed, -speed);
-        break;
-      case 'a':
-        motors.setSpeeds(-speed, speed);
-        break;
-      case 'd':
-        motors.setSpeeds(speed, -speed);
-        break;
-      case 'W':
-        motors.setSpeeds(speed * boostMultiplier, speed * boostMultiplier);
-        break;
-      case 'S':
-        motors.setSpeeds(-speed * boostMultiplier, -speed * boostMultiplier);
-        break;
-      case 'A':
-        motors.setSpeeds(-speed * boostMultiplier, speed * boostMultiplier);
-        break;
-      case 'D':
-        motors.setSpeeds(speed * boostMultiplier, -speed * boostMultiplier);
-        break;
-      case 'x':
-      case 'X':
-        motors.setSpeeds(0, 0);
-        break;
-    }
+    
   }
 }
