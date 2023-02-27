@@ -9,7 +9,7 @@ void ReverseAndTurnRight(int reverseAmount, int turnAmount, int speed = 100);
 
 class Mode
 {
-  public:
+public:
     static const char ModeSelect = 'm';
     static const char SetMotors = 'p';
     static const char WASD = 'o';
@@ -35,12 +35,18 @@ unsigned int lineSensorValues[5];
 void setup()
 {
     Serial.begin(9600);
+    lineSensors.initFiveSensors();
 }
 
 void loop()
 {
     String input = GetInput();
-    lineSensors.initFiveSensors();
+    char oldMode = SelectedMode;
+    ModeSelect(input);
+    if (oldMode == SelectedMode)//if the mode has changed we get user input again
+    {
+        RunMode(input);
+    }
 }
 
 String GetInput()
@@ -50,48 +56,71 @@ String GetInput()
     if (Serial.available() > 0)
     {
         input = Serial.readStringUntil('\n');
-        char c = input.charAt(0);
-        if (c == Mode::ModeSelect)
-        {
-            SelectedMode = Mode::ModeSelect;
-        }
 
-        if (SelectedMode == Mode::ModeSelect)
-        {
-            switch (c)
-            {
-            case Mode::SetMotors:
-                SelectedMode = Mode::SetMotors;
-                break;
-            case Mode::WASD:
-                SelectedMode = Mode::WASD;
-                break;
-            case Mode::Automated:
-                SelectedMode = Mode::Automated;
-                break;
-            }
-        }
-
-        Serial.print("input: ");
+        Serial.print("Received Input: ");
         Serial.println(input);
     }
+    return input;
+}
 
+void ModeSelect(String input)
+{
+    if (input.length() == 0)
+        return;
+    char c = input.charAt(0);
+    if (c == Mode::ModeSelect)
+    {
+        SelectedMode = Mode::ModeSelect;
+        motors.setSpeeds(0, 0);
+        Serial.println("Selected Mode: ModeSelect");
+    }
+
+    if (SelectedMode == Mode::ModeSelect)
+    {
+        switch (c)
+        {
+        case Mode::SetMotors:
+            SelectedMode = Mode::SetMotors;
+            Serial.println("Selected Mode: SetMotors");
+            break;
+        case Mode::WASD:
+            SelectedMode = Mode::WASD;
+            Serial.println("Selected Mode: WASD");
+            break;
+        case Mode::Automated:
+            SelectedMode = Mode::Automated;
+            Serial.println("Selected Mode: Automated");
+            break;
+        }
+    }
+}
+
+void RunMode(String input)
+{
     if (SelectedMode != Mode::ModeSelect)
     {
         switch (SelectedMode)
         {
         case Mode::SetMotors:
-            SetMotorsFromSerial(input);
+            if (input.length() > 0)
+            {
+                SetMotorsFromSerial(input);
+            }
             break;
         case Mode::WASD:
-            SetWASD(input);
+            if (input.length() > 0)
+            {
+                SetWASD(input);
+            }
             break;
         case Mode::Automated:
-            AutomatedMode();
+            // AutomatedMode();
+            motors.setSpeeds(100, -100);
             break;
         }
     }
 }
+
 // expecting a string like "-120,300"
 void SetMotorsFromSerial(String input)
 {
