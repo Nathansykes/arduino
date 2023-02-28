@@ -1,41 +1,45 @@
 #include <Zumo32U4.h>
 #include <string.h>
 
+// zumo objects
 Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
+Zumo32U4ProximitySensors proxSensors;
+PololuBuzzer buzzer;
 
-void ReverseAndTurnLeft(int reverseAmount, int turnAmount, int speed = 100);
-void ReverseAndTurnRight(int reverseAmount, int turnAmount, int speed = 100);
-
+// mode variables
 class Mode
 {
 public:
     static const char ModeSelect = 'm';
     static const char SetMotors = 'p';
     static const char WASD = 'o';
+    static const char SemiAuto = 'u';
     static const char Automated = 'i';
 };
 
-char SelectedMode = Mode::SetMotors;
+char SelectedMode = Mode::Automated;
 
-int blackLineValue = 600;
-
-int count = 0;
-int forwardCount = 0;
+// line sensor variables
+int blackLineMaxValue = 1100;
+int blackLineMinValue = 200;
+int blackLineTargetValue = 700;
 
 unsigned int lineSensorValues[5];
 #define leftSensor lineSensorValues[0]
 #define middleSensor lineSensorValues[2]
 #define rightSensor lineSensorValues[4]
 
-#define delayXLargeTurn 900
-#define delayLargeTurn 600
-#define delaySmallTurn 350
+// prox sensor variables
+bool objectFound = false;
+bool identifyingObject = false;
+int foundCount = 0;
 
 void setup()
 {
     Serial.begin(9600);
     lineSensors.initFiveSensors();
+    proxSensors.initFrontSensor();
 }
 
 void loop()
@@ -43,19 +47,19 @@ void loop()
     String input = GetInput();
     char oldMode = SelectedMode;
     ModeSelect(input);
-    if (oldMode == SelectedMode)//if the mode has changed we skip and get user input again
+    if (oldMode == SelectedMode) // if the mode has changed we skip and get user input again
     {
-        RunMode(input);//some modes don't require input so we handle empty input in the method
+        RunMode(input); // some modes don't require input so we handle empty input in the method
     }
 }
 
 String GetInput()
 {
     String input = "";
-    delay(10);//delay to allow all the data to get to the zumo
+    delay(10); // delay to allow all the data to get to the zumo
     if (Serial.available() > 0)
     {
-        input = Serial.readStringUntil('\n');//read the next line
+        input = Serial.readStringUntil('\n'); // read the next line
 
         Serial.print("Received Input: ");
         Serial.println(input);
@@ -65,19 +69,19 @@ String GetInput()
 
 void ModeSelect(String input)
 {
-    if (input.length() == 0)//no input so we don't change the mode
+    if (input.length() == 0) // no input so we don't change the mode
         return;
     char c = input.charAt(0);
-    if (c == Mode::ModeSelect)// ModeSelect acts like a main menu **
+    if (c == Mode::ModeSelect) // ModeSelect acts like a main menu **
     {
         SelectedMode = Mode::ModeSelect;
-        motors.setSpeeds(0, 0);//stop the robot when this mode is active
+        motors.setSpeeds(0, 0); // stop the robot when this mode is active
         Serial.println("Selected Mode: ModeSelect");
     }
 
-    if (SelectedMode == Mode::ModeSelect)//** mode can't be changed unless mode select is selected
+    if (SelectedMode == Mode::ModeSelect) //** mode can't be changed unless mode select is selected
     {
-        switch (c)// change the mode based on the char entered
+        switch (c) // change the mode based on the char entered
         {
         case Mode::SetMotors:
             SelectedMode = Mode::SetMotors;
@@ -90,6 +94,10 @@ void ModeSelect(String input)
         case Mode::Automated:
             SelectedMode = Mode::Automated;
             Serial.println("Selected Mode: Automated");
+            break;
+        case Mode::SemiAuto:
+            SelectedMode = Mode::SemiAuto;
+            Serial.println("Selected Mode: SemiAuto");
             break;
         }
     }
@@ -104,60 +112,45 @@ void RunMode(String input)
         case Mode::SetMotors:
             if (input.length() > 0)
             {
-                SetMotorsFromSerial(input);//only needs to be hit when new input received
+                SetMotorsFromSerial(input); // only needs to be hit when new input received
             }
             break;
         case Mode::WASD:
             if (input.length() > 0)
             {
-                SetWASD(input);//only needs to be hit when new input received
+                SetWASD(input); // only needs to be hit when new input received
             }
             break;
         case Mode::Automated:
-            // AutomatedMode(); // this needs to be hit continuously in a loop
-            motors.setSpeeds(100, -100);
+        case Mode::SemiAuto:
+            AutomatedMode(); // this needs to be hit continuously in a loop
             break;
         }
     }
 }
 
-
 void SetMotorsFromSerial(String input)
 {
     // Find index of comma
     int commaIndex = input.indexOf(',');
-    Serial.print("commaIndex: ");
-    Serial.println(commaIndex);
 
     // Extract first number
     String num1Str = input.substring(0, commaIndex);
-
-    Serial.print("num1Str: ");
-    Serial.println(num1Str);
 
     int num1 = num1Str.toInt();
 
     // Extract second number
     String num2Str = input.substring(commaIndex + 1);
 
-    Serial.print("num2Str: ");
-    Serial.println(num2Str);
-
     int num2 = num2Str.toInt();
-
-    Serial.print("num1: ");
-    Serial.println(num1);
-    Serial.print("num2: ");
-    Serial.println(num2);
-
     motors.setSpeeds(num1, num2);
 }
 
 // input should be a string like "w90" or "d-120"
 void SetWASD(String input)
 {
-    char c = input.charAt(0);//get the first character for the direction
-    int speed = input.substring(1).toInt();//get the remainder of the string and convert to int
+    char c = input.charAt(0);               // get the first character for the direction
+    int speed = input.substring(1).toInt(); // get the remainder of the string and convert to int
     const float boostMultiplier = 1.3;
 
     Serial.print("c: ");
@@ -201,56 +194,122 @@ void SetWASD(String input)
 void AutomatedMode()
 {
     lineSensors.read(lineSensorValues);
-    FollowLines();
+    followLines();
 }
 
-void FollowLines()
+const char melody[] PROGMEM = "!L16 V15 cdefgab>cbagfedc";
+int lastPersonFoundCount = 1000;
+void ReadProxSensors()
 {
-    // if black line detected in front then turn
-    if (leftSensor > blackLineValue && leftSensor > (blackLineValue - 100) && rightSensor > blackLineValue)
+    proxSensors.read();
+    uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
+    uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
+    // Serial.print("Left: ");
+    // Serial.println(leftValue);
+    // Serial.print("Right: ");
+    // Serial.println(rightValue);
+    if (leftValue < 4 && rightValue < 4)
     {
-        ReverseAndTurnRight(100, delaySmallTurn);
+        return;
     }
-    // if lines detected on both sides, were in a corner so do a large turn
-    if (leftSensor > blackLineValue && leftSensor < blackLineValue && rightSensor > blackLineValue)
+    int total = leftValue + rightValue;
+
+    lastPersonFoundCount++;
+    if (total > 11)
     {
-        ReverseAndTurnRight(50, delayXLargeTurn);
-    }
-    // if no black line is detected, go forward
-    if (leftSensor < blackLineValue && rightSensor < blackLineValue)
-    {
-        motors.setSpeeds(100, 100);
-        forwardCount++;//keep track of how far we have gone forward
-        if (forwardCount > 1000)// if we have gone forward for a while, turn to check if there is a room
+        if (objectFound == false)
         {
-            ReverseAndTurnLeft(0, delayLargeTurn);
-            forwardCount = 0;
+            motors.setSpeeds(0, 0);
+            Serial.println("Object Found");
+            objectFound = true;
+        }
+        else
+        {
+            foundCount++;
+            if (foundCount > 200)
+            {
+                if (lastPersonFoundCount > 1000)// if we haven't seen an object in a while then it will be a new object
+                {
+                    Serial.println("Object Confirmed");
+                    buzzer.playFromProgramSpace(melody);
+                    lastPersonFoundCount = 0;
+                }
+                // back out and continue on route
+                objectFound = false;
+                foundCount = 0;
+                motors.setSpeeds(-100, -100);
+                delay(200);
+                motors.setSpeeds(200, -200);
+                delay(400);
+                motors.setSpeeds(100, 100);
+                delay(1000);
+                return;
+            }
         }
     }
-    // if only black line on the right is detected, turn left
-    if (leftSensor < blackLineValue && rightSensor > blackLineValue)
+    else if (leftValue == 6 && rightValue == 5)
     {
-        ReverseAndTurnLeft(50, delaySmallTurn);
+        motors.setSpeeds(0, 100);
+        delay(50);
     }
-    // if only black line on the left is detected, turn right
-    if (leftSensor > blackLineValue && rightSensor < blackLineValue)
+    else if (rightValue == 6 && leftValue == 5)
     {
-        ReverseAndTurnRight(50, delaySmallTurn);
+        motors.setSpeeds(100, -100);
+        delay(50);
+    }
+    else
+    {
+        return;
     }
 }
 
-void ReverseAndTurnLeft(int reverseAmount, int turnAmount, int speed = 100)
+void printSensorValues()
 {
-    motors.setSpeeds(-speed, -speed);
-    delay(reverseAmount);
-    motors.setSpeeds(-speed, speed);
-    delay(turnAmount);
+    Serial.print("Left: ");
+    Serial.println(leftSensor);
+    Serial.print("Middle: ");
+    Serial.println(middleSensor);
+    Serial.print("Right: ");
+    Serial.println(rightSensor);
+    Serial.println("======================");
 }
 
-void ReverseAndTurnRight(int reverseAmount, int turnAmount, int speed = 100)
+void followLines()
 {
-    motors.setSpeeds(-speed, -speed);
-    delay(reverseAmount);
-    motors.setSpeeds(speed, -speed);
-    delay(turnAmount);
+    ReadProxSensors();
+    if (objectFound == true)
+        return;
+    delay(25);
+    if (rightSensor > blackLineTargetValue || middleSensor > blackLineTargetValue)
+    {
+        if (SelectedMode == Mode::Automated)
+        {
+            motors.setSpeeds(-100, -100);
+            delay(200);
+            motors.setSpeeds(200, -200);
+            delay(600);
+        }
+        else if (SelectedMode == Mode::SemiAuto)
+        {
+            Serial.println("Reached corner or end, handing over to manual input");
+            SelectedMode = Mode::ModeSelect;
+            motors.setSpeeds(0, 0);
+            return;
+        }
+    }
+    else if (leftSensor < blackLineMaxValue && leftSensor > blackLineMinValue)
+    {
+        motors.setSpeeds(100, 100);
+    }
+    else if (leftSensor > blackLineMaxValue)
+    {
+        motors.setSpeeds(130, -130);
+    }
+    else if (leftSensor < blackLineMinValue)
+    {
+        motors.setSpeeds(100, 100);
+        delay(50);
+        motors.setSpeeds(-130, 130);
+        delay(50);
+    }
 }

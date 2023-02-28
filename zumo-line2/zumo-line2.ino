@@ -24,6 +24,11 @@ void loop()
     lineSensors.read(lineSensorValues);
     followLines();
 
+    
+}
+
+void printSensorValues()
+{
     Serial.print("Left: ");
     Serial.println(leftSensor);
     Serial.print("Middle: ");
@@ -32,6 +37,7 @@ void loop()
     Serial.println(rightSensor);
     Serial.println("======================");
 }
+
 void followLines()
 {
     delay(25);
