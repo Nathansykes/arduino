@@ -3,7 +3,7 @@
 Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
 
-int blackThreshhold = 250;
+int blackThreshhold =700;
 
 int count = 0;
 int forwardCount = 0;
@@ -13,9 +13,9 @@ unsigned int lineSensorValues[5];
 #define middleSensor lineSensorValues[2]
 #define rightSensor lineSensorValues[4]
 
-#define delayXLargeTurn 900
+#define delayXLargeTurn 1000
 #define delayLargeTurn 600
-#define delaySmallTurn 350
+#define delaySmallTurn 300
 
 void setup()
 {
@@ -28,18 +28,6 @@ void loop()
     count++;
     lineSensors.read(lineSensorValues);
     followLines();
-    // if(count > 1000)
-    // {
-    //     Serial.println("Increasing threshold");
-    //     blackThreshhold+=100;
-    //     if(blackThreshhold > 900)
-    //     {
-    //         blackThreshhold = 100;
-    //     }
-    //     Serial.print("Threshold: ");
-    //     Serial.println(blackThreshhold);
-    //     count = 0;
-    // }
 
     // Serial.print("Left: ");
     // Serial.println(leftSensor);
@@ -70,7 +58,7 @@ void followLines()
     // If black line is in front stop
     if (leftSensor > blackThreshhold && leftSensor > (blackThreshhold - 100) && rightSensor > blackThreshhold)
     {
-        ReverseAndTurnRight(100, delaySmallTurn);
+        ReverseAndTurnRight(100, delayXLargeTurn);
     }
     // If robot is in a corner turn clockwise
     if (leftSensor > blackThreshhold && leftSensor < blackThreshhold && rightSensor > blackThreshhold)
@@ -82,7 +70,7 @@ void followLines()
     {
         motors.setSpeeds(100, 100);
         forwardCount++;
-        if(forwardCount > 1000)
+        if(forwardCount > 4000)
         {
             ReverseAndTurnLeft(0, delayLargeTurn);
             forwardCount = 0;

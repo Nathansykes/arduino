@@ -16,9 +16,9 @@ public:
     static const char Automated = 'i';
 };
 
-char SelectedMode = Mode::ModeSelect;
+char SelectedMode = Mode::SetMotors;
 
-int blackLineValue = 250;
+int blackLineValue = 600;
 
 int count = 0;
 int forwardCount = 0;
