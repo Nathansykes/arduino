@@ -6,7 +6,6 @@ Zumo32U4ProximitySensors proxSensors;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4Motors motors;
 Zumo32U4Buzzer buzzer;
-Zumo32U4LCD display;
 unsigned int sensors[5];
 unsigned int pSensors[2];
 const int blackThreshhold = 800;
