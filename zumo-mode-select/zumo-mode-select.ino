@@ -243,7 +243,7 @@ void ReadProxSensors()
                 motors.setSpeeds(200, -200);
                 delay(200);
                 motors.setSpeeds(100, 100);
-                delay(800);
+                delay(1600);
                 return;
             }
         }
