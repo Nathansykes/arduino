@@ -155,11 +155,6 @@ void SetWASD(String input)
     int speed = input.substring(1).toInt(); // get the remainder of the string and convert to int
     const float boostMultiplier = 1.3;
 
-    Serial.print("c: ");
-    Serial.println(c);
-    Serial.print("speed: ");
-    Serial.println(speed);
-
     switch (c)
     {
     case 'w':
@@ -200,6 +195,14 @@ void AutomatedMode()
     followLines();
 }
 
+void printProxSensorValues(int leftValue, int rightValue)
+{
+    Serial.print("Left: ");
+    Serial.println(leftValue);
+    Serial.print("Right: ");
+    Serial.println(rightValue);
+}
+
 void ReadProxSensors()
 {
     if (lastPersonFoundCount < 200) // if we haven't seen an object in a while then it will be a new object, stop searching all together
@@ -210,10 +213,7 @@ void ReadProxSensors()
     proxSensors.read();
     uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
     uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
-    Serial.print("Left: ");
-    Serial.println(leftValue);
-    Serial.print("Right: ");
-    Serial.println(rightValue);
+    
     if (leftValue < 4 && rightValue < 4)
     {
         return;
@@ -264,7 +264,7 @@ void ReadProxSensors()
     }
 }
 
-void printSensorValues()
+void printLineSensorValues()
 {
     Serial.print("Left: ");
     Serial.println(leftSensor);
