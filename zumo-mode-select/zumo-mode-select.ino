@@ -18,7 +18,7 @@ public:
     static const char Automated = 'i';
 };
 
-char SelectedMode = Mode::Automated;
+char SelectedMode = Mode::ModeSelect;
 
 // line sensor variables
 int blackLineMaxValue = 600;
@@ -213,7 +213,7 @@ void ReadProxSensors()
     proxSensors.read();
     uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
     uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
-    
+
     if (leftValue < 4 && rightValue < 4)
     {
         return;
@@ -238,12 +238,20 @@ void ReadProxSensors()
                 lastPersonFoundCount = 0;
                 objectFound = false;
                 foundCount = 0;
-                motors.setSpeeds(-100, -100);
-                delay(200);
-                motors.setSpeeds(200, -200);
-                delay(200);
-                motors.setSpeeds(100, 100);
-                delay(2000);
+                if (SelectedMode == Mode::SemiAuto)
+                {
+                    ReturnToManual();
+                    return;
+                }
+                else
+                {
+                    motors.setSpeeds(-100, -100);
+                    delay(200);
+                    motors.setSpeeds(200, -200);
+                    delay(200);
+                    motors.setSpeeds(100, 100);
+                    delay(2000);
+                }
                 return;
             }
         }
@@ -294,9 +302,7 @@ void followLines()
         }
         else if (SelectedMode == Mode::SemiAuto)
         {
-            Serial.println("Reached corner or end, handing over to manual input");
-            SelectedMode = Mode::ModeSelect; // stops this method from  running again and waits for user input
-            motors.setSpeeds(0, 0);
+            ReturnToManual();
             return;
         }
     }
@@ -318,4 +324,13 @@ void followLines()
         motors.setSpeeds(-80, 80);
         delay(75);
     }
+}
+
+void ReturnToManual()
+{
+
+    Serial.println("Reached corner or end, handing over to manual input");
+    SelectedMode = Mode::ModeSelect; // stops the method from  running again and waits for user input
+    motors.setSpeeds(0, 0);
+    return;
 }
