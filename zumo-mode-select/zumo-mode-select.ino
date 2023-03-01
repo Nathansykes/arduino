@@ -35,7 +35,7 @@ bool objectFound = false;
 bool identifyingObject = false;
 int foundCount = 0;
 const char melody[] PROGMEM = "!L16 V15 cdefgab>cbagfedc";
-int lastPersonFoundCount = 0;
+int lastPersonFoundCount = 700;
 
 void setup()
 {
@@ -243,7 +243,7 @@ void ReadProxSensors()
                 motors.setSpeeds(200, -200);
                 delay(200);
                 motors.setSpeeds(100, 100);
-                delay(1600);
+                delay(2000);
                 return;
             }
         }
