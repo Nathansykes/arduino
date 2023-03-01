@@ -5,13 +5,12 @@ Zumo32U4LineSensors lineSensors;
 
 int blackLineMaxValue = 1100;
 int blackLineMinValue = 200;
-int blackLineTargetValue =700;
+int blackLineTargetValue = 700;
 
 unsigned int lineSensorValues[5];
 #define leftSensor lineSensorValues[0]
 #define middleSensor lineSensorValues[2]
 #define rightSensor lineSensorValues[4]
-
 
 void setup()
 {
@@ -23,8 +22,6 @@ void loop()
 {
     lineSensors.read(lineSensorValues);
     followLines();
-
-    
 }
 
 void printSensorValues()
@@ -41,27 +38,26 @@ void printSensorValues()
 void followLines()
 {
     delay(25);
-    if(rightSensor > blackLineTargetValue || middleSensor > blackLineTargetValue)
+    if (rightSensor > blackLineTargetValue || middleSensor > blackLineTargetValue)
     {
         motors.setSpeeds(-100, -100);
         delay(200);
         motors.setSpeeds(200, -200);
         delay(400);
     }
-    else if(leftSensor < blackLineMaxValue && leftSensor > blackLineMinValue)
+    else if (leftSensor < blackLineMaxValue && leftSensor > blackLineMinValue)
     {
         motors.setSpeeds(100, 100);
     }
-    else if(leftSensor > blackLineMaxValue)
+    else if (leftSensor > blackLineMaxValue)
     {
         motors.setSpeeds(130, -130);
     }
-    else if(leftSensor < blackLineMinValue)
+    else if (leftSensor < blackLineMinValue)
     {
-      motors.setSpeeds(100, 100);
-      delay(50);
+        motors.setSpeeds(100, 100);
+        delay(50);
         motors.setSpeeds(-130, 130);
         delay(50);
     }
 }
-
