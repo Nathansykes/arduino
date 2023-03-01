@@ -21,9 +21,9 @@ public:
 char SelectedMode = Mode::Automated;
 
 // line sensor variables
-int blackLineMaxValue = 1100;
-int blackLineMinValue = 200;
-int blackLineTargetValue = 700;
+int blackLineMaxValue = 600;
+int blackLineMinValue = 250;
+int blackLineTargetValue = 650;
 
 unsigned int lineSensorValues[5];
 #define leftSensor lineSensorValues[0]
@@ -34,6 +34,8 @@ unsigned int lineSensorValues[5];
 bool objectFound = false;
 bool identifyingObject = false;
 int foundCount = 0;
+const char melody[] PROGMEM = "!L16 V15 cdefgab>cbagfedc";
+int lastPersonFoundCount = 0;
 
 void setup()
 {
@@ -194,67 +196,66 @@ void SetWASD(String input)
 void AutomatedMode()
 {
     lineSensors.read(lineSensorValues);
+    // printSensorValues();
     followLines();
 }
 
-const char melody[] PROGMEM = "!L16 V15 cdefgab>cbagfedc";
-int lastPersonFoundCount = 1000;
 void ReadProxSensors()
 {
+    if (lastPersonFoundCount < 200) // if we haven't seen an object in a while then it will be a new object, stop searching all together
+    {
+        lastPersonFoundCount++;
+        return;
+    }
     proxSensors.read();
     uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
     uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
-    // Serial.print("Left: ");
-    // Serial.println(leftValue);
-    // Serial.print("Right: ");
-    // Serial.println(rightValue);
+    Serial.print("Left: ");
+    Serial.println(leftValue);
+    Serial.print("Right: ");
+    Serial.println(rightValue);
     if (leftValue < 4 && rightValue < 4)
     {
         return;
     }
     int total = leftValue + rightValue;
 
-    lastPersonFoundCount++;
-    if (total > 11)
+    if (total > 10) // if at one sensor is 5 and the other is 6
     {
         if (objectFound == false)
         {
-            motors.setSpeeds(0, 0);
+            motors.setSpeeds(0, 0); // stop and identify the object
             Serial.println("Object Found");
             objectFound = true;
         }
         else
         {
             foundCount++;
-            if (foundCount > 200)
+            if (foundCount > 100) // wait until were sure its an object
             {
-                if (lastPersonFoundCount > 1000)// if we haven't seen an object in a while then it will be a new object
-                {
-                    Serial.println("Object Confirmed");
-                    buzzer.playFromProgramSpace(melody);
-                    lastPersonFoundCount = 0;
-                }
-                // back out and continue on route
+                Serial.println("Object Confirmed");
+                buzzer.playFromProgramSpace(melody);
+                lastPersonFoundCount = 0;
                 objectFound = false;
                 foundCount = 0;
                 motors.setSpeeds(-100, -100);
                 delay(200);
                 motors.setSpeeds(200, -200);
-                delay(400);
+                delay(200);
                 motors.setSpeeds(100, 100);
-                delay(1000);
+                delay(800);
                 return;
             }
         }
     }
-    else if (leftValue == 6 && rightValue == 5)
+    else if (leftValue == 6 && rightValue == 5) // theres an object to our left so face it
     {
-        motors.setSpeeds(0, 100);
+        motors.setSpeeds(-80, 80);
         delay(50);
     }
-    else if (rightValue == 6 && leftValue == 5)
+    else if (rightValue == 6 && leftValue == 5) // theres an object to right
     {
-        motors.setSpeeds(100, -100);
+        motors.setSpeeds(80, -80);
         delay(50);
     }
     else
@@ -280,36 +281,41 @@ void followLines()
     if (objectFound == true)
         return;
     delay(25);
-    if (rightSensor > blackLineTargetValue || middleSensor > blackLineTargetValue)
+    // if the right or middle sensor detects a line we've hit a right turn
+    if (rightSensor > blackLineMaxValue || middleSensor > blackLineMaxValue)
     {
         if (SelectedMode == Mode::Automated)
         {
+            // do big turn right
             motors.setSpeeds(-100, -100);
             delay(200);
             motors.setSpeeds(200, -200);
-            delay(600);
+            delay(400);
         }
         else if (SelectedMode == Mode::SemiAuto)
         {
             Serial.println("Reached corner or end, handing over to manual input");
-            SelectedMode = Mode::ModeSelect;
+            SelectedMode = Mode::ModeSelect; // stops this method from  running again and waits for user input
             motors.setSpeeds(0, 0);
             return;
         }
     }
+    // line in the sweet spot so go forward
     else if (leftSensor < blackLineMaxValue && leftSensor > blackLineMinValue)
     {
         motors.setSpeeds(100, 100);
     }
+    // we're to close to the line so turn away
     else if (leftSensor > blackLineMaxValue)
     {
-        motors.setSpeeds(130, -130);
+        motors.setSpeeds(80, -80);
     }
+    // we've moved away from the line so turn back to it
     else if (leftSensor < blackLineMinValue)
     {
         motors.setSpeeds(100, 100);
-        delay(50);
-        motors.setSpeeds(-130, 130);
-        delay(50);
+        delay(25);
+        motors.setSpeeds(-80, 80);
+        delay(75);
     }
 }
